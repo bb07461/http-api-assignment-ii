@@ -31,6 +31,103 @@
     </form>
   </section>
   <section id="content">
+    <h3>Add User</h3>
+    <input type="text" id="name" placeholder="Name">
+    <input type="number" id="age" placeholder="Age">
+    <button id="addUser">Add User</button>
   </section>
+  <section id="result"></section>
+
+  <script>
+    // Function to handle the response
+    const handleResponse = async (response) => {
+      const content = document.querySelector('#result');
+      content.innerHTML = '';
+
+      switch (response.status) {
+        case 200:
+          content.innerHTML = '<b>Success</b>';
+          break;
+        case 201:
+          content.innerHTML = '<b>Created</b>';
+          break;
+        case 204:
+          content.innerHTML = '<b>Updated (No Content)</b>';
+          return;
+        case 400:
+          content.innerHTML = '<b>Bad Request</b>';
+          break;
+        case 404:
+          content.innerHTML = '<b>Not Found</b>';
+          break;
+        default:
+          content.innerHTML = '<b>Unexpected Error</b>';
+          break;
+      }
+
+      if (response.status !== 204) {
+        try {
+          const obj = await response.json();
+          if (obj.message) {
+            content.innerHTML += `<p>${obj.message}</p>`;
+          }
+        } catch (error) {
+          content.innerHTML += '<p>No JSON Response</p>';
+        }
+      }
+
+      return null; // ✅ Ensures function always returns a value
+    };
+
+    // Function to send a POST request
+    const sendPost = async (event) => {
+      event.preventDefault();
+
+      const nameField = document.querySelector('#nameField').value;
+      const ageField = document.querySelector('#ageField').value; // ✅ Moved inside function
+
+      if (!nameField || !ageField) {
+        alert('Both name and age are required.');
+        return;
+      }
+
+      const response = await fetch('/addUser', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json',
+        },
+        body: `name=${nameField}&age=${ageField}`,
+      });
+
+      return handleResponse(response); 
+    };
+
+    // Function to send a GET or HEAD request
+    const sendGetOrHead = async (event) => {
+      event.preventDefault();
+
+      const url = document.querySelector('#urlField').value;
+      const method = document.querySelector('#methodSelect').value;
+
+      const response = await fetch(url, {
+        method,
+        headers: { 'Accept': 'application/json' },
+      });
+
+      return handleResponse(response); 
+    };
+
+    // Initialize event listeners
+    const init = () => {
+      document.querySelector('#nameForm').addEventListener('submit', sendPost);
+      document.querySelector('#userForm').addEventListener('submit', sendGetOrHead);
+      return;
+    };
+
+    window.onload = init;
+  </script>
 </body>
 </html>
+
+
